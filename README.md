@@ -1,9 +1,7 @@
 # kvis-setup
 
-* * *
-
 ### Prerequisites
-Download `kvis-definitions.rb` and one of or both the profile scripts `kvis-wide.rb` and `kvis-square.rb`, placing them somewhere in your `$PATH`. Note that each profile script assumes the definitions file is in the same directory. You will need [xdotool](http://www.semicomplete.com/projects/xdotool/xdotool.xhtml) and [xwininfo](http://linux.die.net/man/1/xwininfo) installed locally, as well as [ruby](https://www.ruby-lang.org/en/) interpreter.
+Download `kvis-definitions.rb` and one of or both the profile scripts `kvis-wide.rb` and `kvis-square.rb`, placing them somewhere in your `$PATH`. Note that each profile script assumes the definitions file is in the same directory. You will need [xdotool](http://www.semicomplete.com/projects/xdotool/xdotool.xhtml) and [xwininfo](http://linux.die.net/man/1/xwininfo) installed locally, as well as a [Ruby](https://www.ruby-lang.org/en/) interpreter.
 
 ### Usage
 To set up kvis according to a profile, simply run that script. By default, these profile scripts will open kvis before adjusting. To see a list of available options, simply pass a `-h` flag.
