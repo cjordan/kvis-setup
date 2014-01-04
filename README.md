@@ -1,5 +1,5 @@
 # kvis-setup
-### A set of ruby scripts used to initialise the options and layout of karma's kvis
+
 * * *
 
 ### Prerequisites
@@ -10,7 +10,7 @@ To set up kvis according to a profile, simply run that script. By default, these
 
 Here are some examples of usage:
 
-+ `kvis-wide.rb` - open kvis and layout in a "wide" configuration
++ `kvis-wide.rb` - open kvis, then layout in a "wide" configuration
 + `kvis-wide.rb -h` - help
 + `kvis-wide.rb -d` - see each command passed to xdotool for debugging
 + `kvis-wide.rb -n` - do not open kvis with the script, but layout an open kvis anyway
