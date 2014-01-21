@@ -16,10 +16,6 @@ original_mouse_pos = (xdotool "getmouselocation").scan(/:(\d*)/)[0..1].join(' ')
 # Get the desktop geometry so we can place windows neatly at the edges
 screen_geometry = (`xwininfo -root`).scan(/(Width|Height):\s*(\d*)/).map{|n| n[1].to_i}
 
-# Open kvis
-system("kvis &") if $open_kvis
-sleep $sleep_time
-
 
 ## Window manipulation
 # Create a new "Kvis" object from a window id that matches "kvis.*Karma"

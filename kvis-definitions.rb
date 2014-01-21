@@ -14,6 +14,7 @@
 # Command line argument handling
 require 'optparse'
 
+options = {}
 OptionParser.new do |opts|
     # opts.banner = "Usage: kvis-setup.rb [options]\nDumb set up script for karma's kvis. Simulates mouse movements and clicks."
 
@@ -23,8 +24,8 @@ OptionParser.new do |opts|
     $sleep_time = 0.05
 	opts.on('-s','--sleep_time NUM','Specify the amount of time to sleep between actions. May be useful for slow computers or networks. Default is 0.05s.') {|o| $sleep_time = o.to_f}
 
-    $open_kvis = true
-    opts.on('-n','--no-kvis','Do not open kvis with this script.') {$open_kvis = false}
+    options[:open_kvis?] = true
+    opts.on('-n','--no-kvis','Do not open kvis with this script.') {options[:open_kvis?] = false}
 
     opts.on('-d','--debug','Prints the commands being sent to xdotool.') {$debug = true}
 end.parse!
@@ -292,4 +293,11 @@ end
 # If window id is open ("X Map State"), return true
 def win_is_open?(id)
     (`xwininfo -id #{id}`).match(/Map State:\s*(IsViewable)/) ? true : false
+end
+
+
+# Open kvis
+if options[:open_kvis?]
+    system("kvis &")
+    sleep 1
 end
