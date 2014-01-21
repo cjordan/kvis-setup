@@ -39,9 +39,9 @@ class Window
         # Resize the window to "default" if it is not already this size
         xdotool "windowsize --sync #{@id} #{@default.join(' ')}" unless get_geometry(@id) == @default
     end
-    # Raise this window above all others (will not work for all window managers)
+    # Raise this window above all others (may not work for all window managers)
     def raise
-        # Unsure of the proper tool to use here. "windowactivate" seems to work
+        # Unsure of the proper tool to use here. "windowactivate" seems to work.
         xdotool "windowactivate #{@id}"
     end
     # Move this window to new coordinates (x,y)
@@ -56,7 +56,7 @@ class Window
     # Use with care - the coordinates of the button must be specified per window.
     # If this is run without "close" properly defined, the script will exit prematurely.
     def close
-        abort("#{File.basename(__FILE__)}: Window #{@id} did not close - your settings may need adjusting. Exiting...") if win_is_open?(@id)
+        abort("*** #{File.basename(__FILE__)}: Window #{@id} did not close - your settings may need adjusting. Exiting...") if win_is_open?(@id)
     end
 end
 
@@ -70,27 +70,34 @@ class Kvis < Window
     end
     # Open the Files window
     def files
-        click_on(@id,30,15)
+        click_on_perc(@id,5.7,2.5)
     end
     # Opens up an element from the Intensity menu
     def intensity(element)
         case element.downcase
         when "pseudo"
-            navigate_dropdown(@id,100,15,100,65)
+            navigate_dropdown_perc(@id,19.2,2.5,0,50)
         end
     end
     # Opens up an element from the Overlay menu
     def overlay(element)
         case element.downcase
         when "axis"
-            navigate_dropdown(@id,230,15,230,65)
+            navigate_dropdown_perc(@id,44,2.5,0,50)
         when "annotation"
-            navigate_dropdown(@id,230,15,230,160)
+            navigate_dropdown_perc(@id,44,2.5,0,145)
         end
     end
     # Open the View window
     def view
-        click_on(@id,365,15)
+        view_id = get_window_id("View Control for display window")
+        click_on_perc(@id,70,2.5)
+        # Wait until the window is open
+        while view_id == get_window_id("View Control for display window")
+            sleep 0.05
+        end
+        # Return the new window
+        return View.new(get_window_id("View Control for display window"))
     end
 end
 
@@ -117,10 +124,10 @@ class Axis < Window
         super
     end
     def enable
-        click_on(@id,100,15)
+        click_on_perc(@id,29.1,4.5)
     end
     def paper_colours
-        click_on(@id,200,140)
+        click_on_perc(@id,58.1,42.3)
     end
 end
 
@@ -156,18 +163,18 @@ class View < Window
         super
     end
     def close
-        click_on(@id,30,15)
+        click_on_perc(@id,6.5,6)
         super
     end
     def marker
-        click_on(@id,100,115)
+        click_on_perc(@id,21.7,46.2)
     end
     def profile(element)
         case element.downcase
         when "line"
-            navigate_dropdown(@id,200,40,200,90)
+            navigate_dropdown_perc(@id,43.5,16.1,0,50)
         when "box_sum"
-            navigate_dropdown(@id,200,40,200,115)
+            navigate_dropdown_perc(@id,43.5,16.1,0,75)
         end
     end
 end
@@ -245,6 +252,14 @@ def click_on(id,x,y)
     sleep $sleep_time
 end
 
+# Click on a point in a window based on percentile position
+def click_on_perc(id,x_p,y_p)
+    # Get the size of the window
+    size = get_geometry(id)
+    # Scale the input percentage coordinates to absolute values, and click
+    click_on(id,size[0]*x_p/100,size[1]*y_p/100)
+end
+
 # Select an option from a dropdown menu in a window id
 # (x1,y1) represent the position of the menu button, (x2,y2) the option to be selected
 def navigate_dropdown(id,x1,y1,x2,y2)
@@ -264,6 +279,16 @@ def navigate_dropdown(id,x1,y1,x2,y2)
     xdotool "mousemove #{x2} #{y2}"
     xdotool "mouseup 1"
     sleep $sleep_time
+end
+
+# Navigate a dropdown by it's percentile position
+# This is more tricky, as the menu itself does not scale with the window.
+# [x2, y2] are the absolute difference from [x_p, y_p]
+def navigate_dropdown_perc(id,x_p,y_p,x2,y2)
+    size = get_geometry(id)
+    x1 = size[0]*x_p/100
+    y1 = size[1]*y_p/100
+    navigate_dropdown(id,x1,y1,x1+x2,y1+y2)
 end
 
 # Return the (x,y) position of the top-left corner of an X window
@@ -298,6 +323,11 @@ end
 
 # Open kvis
 if options[:open_kvis?]
+    kvis_id = get_window_id("kvis.*Karma")
     system("kvis &")
-    sleep 1
+    # Poll until the window is open
+    while kvis_id == get_window_id("kvis.*Karma")
+        sleep 0.05
+    end
+    # sleep 0.05
 end

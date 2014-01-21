@@ -38,8 +38,9 @@ pseudo.glynn_rogers2
 pseudo.close
 
 # Open the View window and enable "Show Marker in Line Profile"
-kvis.view
-view = View.new(get_window_id("View Control for display window"))
+# kvis.view
+# view = View.new(get_window_id("View Control for display window"))
+view = kvis.view
 view.marker
 # Open the "Box Sum" profile
 view.profile("box_sum")
