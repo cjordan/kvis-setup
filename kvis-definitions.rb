@@ -249,7 +249,26 @@ class Files < Window
     end
     def pin
         self.raise
-        click_on(@id,220,360)
+        win_dec_height = get_win_decorator_height(@id)
+        click_on(@id,220,360-win_dec_height)
+    end
+end
+
+## Annotation window
+class Annotation < Window
+    def initialize(id)
+        @default = [400,400]
+        super
+    end
+    def close
+        self.raise
+        click_on(@id,30,360)
+        super
+    end
+    def pin
+        self.raise
+        win_dec_height = get_win_decorator_height(@id)
+        click_on(@id,220,360-win_dec_height)
     end
 end
 
