@@ -21,7 +21,6 @@ screen_geometry = (`xwininfo -root`).scan(/(Width|Height):\s*(\d*)/).map{|n| n[1
 # Create a new "Kvis" object from a window id that matches "kvis.*Karma"
 kvis = Kvis.new(get_window_id("kvis.*Karma"))
 # From the main kvis window, open the Axis Labels window
-kvis.raise
 kvis.overlay("axis")
 
 # Set axis labels to be enabled, along with paper colours
@@ -44,12 +43,10 @@ view.marker
 # Open the "Box Sum" profile
 view.profile("box_sum")
 # Close the View window
-view.raise
 view.close
 
 # Enable "Auto V Zoom" and set the "Style" to "hist"
 profile = Profile.new(get_window_id("Profile Window for display window"))
-profile.raise
 profile.v_zoom
 profile.style("hist")
 # Open the Axis Labels window for the profile window
@@ -62,7 +59,6 @@ axis.paper_colours
 axis.close
 
 # Open the Files window
-kvis.raise
 kvis.files
 files = Files.new(get_window_id("Array File Selector"))
 # Set the Pin option
@@ -104,16 +100,20 @@ profile_y = top_bar_height + browser_height + 2*win_dec_height + 2
 ## Move and resize all the windows
 kvis.size(kvis_width, kvis_height)
 kvis.move(kvis_x, kvis_y)
+kvis.raise
 
 files.size(files_width, files_height)
 files.move(files_x, files_y)
+files.raise
 
 browser = Browser.new(get_window_id("Browser.*for display window"))
 browser.size(browser_width, browser_height)
 browser.move(browser_x, browser_y)
+browser.raise
 
 profile.size(profile_width, profile_height)
 profile.move(profile_x, profile_y)
+profile.raise
 
 
 ## Return the mouse to where we started

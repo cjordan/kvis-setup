@@ -37,7 +37,7 @@ class Window
     def initialize(id)
         @id = id
         # Resize the window to "default" if it is not already this size
-        xdotool "windowsize --sync #{@id} #{@default.join(' ')}" unless get_geometry(@id) == @default
+        self.size_default
     end
     # Raise this window above all others (may not work for all window managers)
     def raise
@@ -56,7 +56,13 @@ class Window
     # Use with care - the coordinates of the button must be specified per window.
     # If this is run without "close" properly defined, the script will exit prematurely.
     def close
+        sleep $sleep_time
         abort("*** #{File.basename(__FILE__)}: Window #{@id} did not close - your settings may need adjusting. Exiting...") if win_is_open?(@id)
+    end
+    # Call this function to resize the window to its default size.
+    # May be useful before calling "click_on" if your window manager resizes windows haphazardly.
+    def size_default
+        xdotool "windowsize --sync #{@id} #{@default.join(' ')}" unless get_geometry(@id) == @default
     end
 end
 
@@ -70,10 +76,12 @@ class Kvis < Window
     end
     # Open the Files window
     def files
+        self.raise
         click_on_perc(@id,5.7,2.5)
     end
     # Opens up an element from the Intensity menu
     def intensity(element)
+        self.raise
         case element.downcase
         when "pseudo"
             navigate_dropdown_perc(@id,19.2,2.5,0,50)
@@ -81,6 +89,7 @@ class Kvis < Window
     end
     # Opens up an element from the Overlay menu
     def overlay(element)
+        self.raise
         case element.downcase
         when "axis"
             navigate_dropdown_perc(@id,44,2.5,0,50)
@@ -90,14 +99,15 @@ class Kvis < Window
     end
     # Open the View window
     def view
+        self.raise
         view_id = get_window_id("View Control for display window")
         click_on_perc(@id,70,2.5)
         # Wait until the window is open
         while view_id == get_window_id("View Control for display window")
-            sleep 0.05
+            sleep 0.1
         end
         # Return the new window
-        return View.new(get_window_id("View Control for display window"))
+        View.new(get_window_id("View Control for display window"))
     end
 end
 
@@ -108,6 +118,7 @@ class Browser < Window
         super
     end
     def close
+        self.raise
         click_on(@id,30,15)
         super
     end
@@ -120,13 +131,16 @@ class Axis < Window
         super
     end
     def close
+        self.raise
         click_on(@id,30,15)
         super
     end
     def enable
+        self.raise
         click_on_perc(@id,29.1,4.5)
     end
     def paper_colours
+        self.raise
         click_on_perc(@id,58.1,42.3)
     end
 end
@@ -139,16 +153,20 @@ class Pseudo < Window
         super
     end
     def close
+        self.raise
         click_on(@id,30,15)
         super
     end
     def reverse
+        self.raise
         click_on(@id,130,15)
     end
     def greyscale2
+        self.raise
         click_on(@id,230,331)
     end
     def glynn_rogers2
+        self.raise
         click_on(@id,230,426)
     end
     def heat
@@ -163,13 +181,20 @@ class View < Window
         super
     end
     def close
+        self.raise
         click_on_perc(@id,6.5,6)
         super
     end
     def marker
+        self.raise
         click_on_perc(@id,21.7,46.2)
     end
+    def movie
+        self.raise
+        click_on_perc(@id,25.4,16.1)
+    end
     def profile(element)
+        self.raise
         case element.downcase
         when "line"
             navigate_dropdown_perc(@id,43.5,16.1,0,50)
@@ -186,6 +211,7 @@ class Profile < Window
         super
     end
     def close
+        self.raise
         click_on(@id,30,15)
         super
     end
@@ -193,12 +219,14 @@ class Profile < Window
         click_on(@id,100,15)
     end
     def style(element)
+        self.raise
         case element.downcase
         when "hist"
             navigate_dropdown(@id,280,40,280,90)
         end
     end
     def overlay(element)
+        self.raise
         case element.downcase
         when "axis"
             navigate_dropdown(@id,100,40,100,90)
@@ -215,11 +243,26 @@ class Files < Window
         super
     end
     def close
+        self.raise
         click_on(@id,30,360)
         super
     end
     def pin
+        self.raise
         click_on(@id,220,360)
+    end
+end
+
+## Movie window
+class Movie < Window
+    def initialize(id)
+        @default = [355,315]
+        super
+    end
+    def close
+        self.raise
+        click_on_perc(@id,6.5,6)
+        super
     end
 end
 
@@ -249,7 +292,7 @@ def click_on(id,x,y)
     # Move the mouse to (x,y), then click
     xdotool "mousemove #{x} #{y}"
     xdotool "click 1"
-    sleep $sleep_time
+    # sleep $sleep_time
 end
 
 # Click on a point in a window based on percentile position
@@ -329,5 +372,4 @@ if options[:open_kvis?]
     while kvis_id == get_window_id("kvis.*Karma")
         sleep 0.05
     end
-    # sleep 0.05
 end
