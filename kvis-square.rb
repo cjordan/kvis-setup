@@ -2,12 +2,10 @@
 
 # A "dumb" set up script for kvis, simulating mouse movements and clicks.
 # This is a profile script for a "square" configuration.
-# This script assumes the main kvis window is on top when it is run.
 
 
-# This line assumes that the kvis definitions library is in the
-# same dir as this script.
-require "#{__FILE__.match(/(\/.*\/)/)}kvis-definitions.rb"
+$LOAD_PATH.unshift File.dirname(__FILE__)
+require "kvis-definitions.rb"
 
 
 # Record the mouse position so we can reset it when done
@@ -37,8 +35,7 @@ pseudo.glynn_rogers2
 pseudo.close
 
 # Open the View window and enable "Show Marker in Line Profile"
-kvis.view
-view = View.new(get_window_id("View Control for display window"))
+view = kvis.view
 view.marker
 # Open the "Box Sum" profile
 view.profile("box_sum")

@@ -6,9 +6,9 @@
 # file contains only information on various windows and common functions.
 # Add any further options that you find useful for your kvis tasks.
 #
-# Example of inclusion line:
-# require "#{__FILE__.match(/(\/.*\/)/)}kvis-definitions.rb"
-# This line assumes that this script is in the same dir as a profile script.
+# How to include this script:
+# $LOAD_PATH.unshift File.dirname(__FILE__)
+# require "kvis-definitions.rb"
 
 
 # Command line argument handling
@@ -43,14 +43,17 @@ class Window
     def raise
         # Unsure of the proper tool to use here. "windowactivate" seems to work.
         xdotool "windowactivate #{@id}"
+        sleep $sleep_time/3
     end
     # Move this window to new coordinates (x,y)
     def move(x,y)
         xdotool "windowmove --sync #{@id} #{x} #{y}"
+        sleep $sleep_time/3
     end
     # Resize this window to geometry (x,y)
     def size(x,y)
         xdotool "windowsize --sync #{@id} #{x} #{y}"
+        sleep $sleep_time/3
     end
     # Closes the current window
     # Use with care - the coordinates of the button must be specified per window.
@@ -63,6 +66,7 @@ class Window
     # May be useful before calling "click_on" if your window manager resizes windows haphazardly.
     def size_default
         xdotool "windowsize --sync #{@id} #{@default.join(' ')}" unless get_geometry(@id) == @default
+        sleep $sleep_time/3
     end
 end
 
@@ -100,12 +104,7 @@ class Kvis < Window
     # Open the View window
     def view
         self.raise
-        view_id = get_window_id("View Control for display window")
         click_on_perc(@id,70,2.5)
-        # Wait until the window is open
-        while view_id == get_window_id("View Control for display window")
-            sleep 0.1
-        end
         # Return the new window
         View.new(get_window_id("View Control for display window"))
     end
@@ -170,6 +169,7 @@ class Pseudo < Window
         click_on(@id,230,426)
     end
     def heat
+        self.raise
         click_on(@id,230,523)
     end
 end
@@ -238,20 +238,20 @@ end
 class Files < Window
     def initialize(id)
         # The Files window is special - it will size itself according to the files in the pwd.
-        # Resize it here so the button placement is predictable.
+        # Additionally, it seems that button placement is machine dependant.
+        # Resizing is done only to be consistent with the other windows.
         @default = [400,400]
         super
     end
-    def close
-        self.raise
-        click_on(@id,30,360)
-        super
-    end
     def pin
+        # The strategy for hitting buttons is to cycle through known sizes
         self.raise
-        win_dec_height = get_win_decorator_height(@id)
-        click_on(@id,220,360-win_dec_height)
+        self.size(800,55)
+        click_on(@id,225,15)
+        self.size(800,80)
+        click_on(@id,225,15)
     end
+    # No close method exists because it's hard. Sorry.
 end
 
 ## Annotation window
@@ -298,7 +298,7 @@ end
 # Return the window id from a X window name
 # We only return the last element from xdotool
 def get_window_id(search_string)
-    (xdotool "search --name '#{search_string}'").split("\n")[-1]
+    (xdotool "search --sync --name '#{search_string}'").split("\n")[-1]
 end
 
 # Move the mouse relative to the window id to (x,y) and click
@@ -385,10 +385,6 @@ end
 
 # Open kvis
 if options[:open_kvis?]
-    kvis_id = get_window_id("kvis.*Karma")
     system("kvis &")
-    # Poll until the window is open
-    while kvis_id == get_window_id("kvis.*Karma")
-        sleep 0.05
-    end
+    kvis_id = get_window_id("kvis.*Karma")
 end
