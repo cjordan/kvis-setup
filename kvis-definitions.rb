@@ -82,6 +82,8 @@ class Kvis < Window
     def files
         self.raise
         click_on_perc(@id,5.7,2.5)
+        # Return the new window
+        return Files.new(get_window_id("Array File Selector"))
     end
     # Opens up an element from the Intensity menu
     def intensity(element)
@@ -89,6 +91,7 @@ class Kvis < Window
         case element.downcase
         when "pseudo"
             navigate_dropdown_perc(@id,19.2,2.5,0,50)
+            return Pseudo.new(get_window_id("pseudoCmapwinpopup"))
         end
     end
     # Opens up an element from the Overlay menu
@@ -97,16 +100,17 @@ class Kvis < Window
         case element.downcase
         when "axis"
             navigate_dropdown_perc(@id,44,2.5,0,50)
+            return Axis.new(get_window_id("dressingControlPopup"))
         when "annotation"
             navigate_dropdown_perc(@id,44,2.5,0,145)
+            return Annotation.new(get_window_id("Annotation File Selector"))
         end
     end
     # Open the View window
     def view
         self.raise
         click_on_perc(@id,70,2.5)
-        # Return the new window
-        View.new(get_window_id("View Control for display window"))
+        return View.new(get_window_id("View Control for display window"))
     end
 end
 
@@ -201,6 +205,7 @@ class View < Window
         when "box_sum"
             navigate_dropdown_perc(@id,43.5,16.1,0,75)
         end
+        return Profile.new(get_window_id("Profile Window for display window"))
     end
 end
 
@@ -230,6 +235,7 @@ class Profile < Window
         case element.downcase
         when "axis"
             navigate_dropdown(@id,100,40,100,90)
+            return Axis.new(get_window_id("dressingControlPopup"))
         end
     end
 end
@@ -297,7 +303,9 @@ end
 # Return the window id from a X window name
 # We only return the last element from xdotool
 def get_window_id(search_string)
-    (xdotool "search --sync --name '#{search_string}'").split("\n")[-1]
+    id = (xdotool "search --sync --name '#{search_string}'").split("\n")[-1]
+    sleep $sleep_time/3
+    return id
 end
 
 # Move the mouse relative to the window id to (x,y) and click
@@ -385,5 +393,4 @@ end
 # Open kvis
 if options[:open_kvis?]
     system("kvis &")
-    kvis_id = get_window_id("kvis.*Karma")
 end

@@ -19,17 +19,15 @@ screen_geometry = (`xwininfo -root`).scan(/(Width|Height):\s*(\d*)/).map{|n| n[1
 # Create a new "Kvis" object from a window id that matches "kvis.*Karma"
 kvis = Kvis.new(get_window_id("kvis.*Karma"))
 # From the main kvis window, open the Axis Labels window
-kvis.overlay("axis")
+axis = kvis.overlay("axis")
 
 # Set axis labels to be enabled, along with paper colours
-axis = Axis.new(get_window_id("dressingControlPopup"))
 axis.enable
 axis.paper_colours
 axis.close
 
 # Set the colour scale to "Glynn Rogers2", and disable the "Reverse" option
-kvis.intensity("pseudo")
-pseudo = Pseudo.new(get_window_id("pseudoCmapwinpopup"))
+pseudo = kvis.intensity("pseudo")
 pseudo.reverse
 pseudo.glynn_rogers2
 pseudo.close
@@ -38,26 +36,23 @@ pseudo.close
 view = kvis.view
 view.marker
 # Open the "Box Sum" profile
-view.profile("box_sum")
+profile = view.profile("box_sum")
 # Close the View window
 view.close
 
 # Enable "Auto V Zoom" and set the "Style" to "hist"
-profile = Profile.new(get_window_id("Profile Window for display window"))
 profile.v_zoom
 profile.style("hist")
 # Open the Axis Labels window for the profile window
-profile.overlay("axis")
+axis = profile.overlay("axis")
 
 # Enable Axis Labels and paper colours
-axis = Axis.new(get_window_id("dressingControlPopup"))
 axis.enable
 axis.paper_colours
 axis.close
 
 # Open the Files window
-kvis.files
-files = Files.new(get_window_id("Array File Selector"))
+files = kvis.files
 # Set the Pin option
 files.pin
 
