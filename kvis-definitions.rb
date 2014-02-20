@@ -303,9 +303,8 @@ end
 # Return the window id from a X window name
 # We only return the last element from xdotool
 def get_window_id(search_string)
-    id = (xdotool "search --sync --name '#{search_string}'").split("\n")[-1]
     sleep $sleep_time/3
-    return id
+    return (xdotool "search --sync --name '#{search_string}'").split("\n")[-1]
 end
 
 # Move the mouse relative to the window id to (x,y) and click
@@ -344,10 +343,10 @@ def navigate_dropdown(id,x1,y1,x2,y2)
     xdotool "mousemove #{x1} #{y1-30}"
     xdotool "mousemove #{x1} #{y1}"
     xdotool "mousedown 1"
-    sleep $sleep_time
+    sleep $sleep_time/2
     xdotool "mousemove #{x2} #{y2}"
     xdotool "mouseup 1"
-    sleep $sleep_time
+    sleep $sleep_time/2
 end
 
 # Navigate a dropdown by it's percentile position

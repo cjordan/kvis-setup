@@ -37,8 +37,6 @@ view = kvis.view
 view.marker
 # Open the "Box Sum" profile
 profile = view.profile("box_sum")
-# Close the View window
-view.close
 
 # Enable "Auto V Zoom" and set the "Style" to "hist"
 profile.v_zoom
@@ -106,6 +104,9 @@ browser.raise
 profile.size(profile_width, profile_height)
 profile.move(profile_x, profile_y)
 profile.raise
+
+# Close the View window
+view.close
 
 
 ## Return the mouse to where we started
