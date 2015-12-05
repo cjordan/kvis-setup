@@ -12,22 +12,22 @@
 
 
 # Command line argument handling
-require 'optparse'
+require "optparse"
 
 options = {}
 OptionParser.new do |opts|
     # opts.banner = "Usage: kvis-setup.rb [options]\nDumb set up script for karma's kvis. Simulates mouse movements and clicks."
 
-    opts.on('-h','--help','Display this message.') {puts opts; exit}
+    opts.on("-h","--help","Display this message.") {puts opts; exit}
 
     # sleep_time is global so you don't have to pass it annoyingly to functions
     $sleep_time = 0.05
-	opts.on('-s','--sleep_time NUM','Specify the amount of time to sleep between actions. May be useful for slow computers or networks. Default is 0.05s.') {|o| $sleep_time = o.to_f}
+	opts.on("-s","--sleep_time NUM","Specify the amount of time to sleep between actions. May be useful for slow computers or networks. Default is 0.05s.") {|o| $sleep_time = o.to_f}
 
     options[:open_kvis?] = true
-    opts.on('-n','--no-kvis','Do not open kvis with this script.') {options[:open_kvis?] = false}
+    opts.on("-n","--no-kvis","Do not open kvis with this script.") {options[:open_kvis?] = false}
 
-    opts.on('-d','--debug','Prints the commands being sent to xdotool.') {$debug = true}
+    opts.on("-d","--debug","Prints the commands being sent to xdotool.") {$debug = true}
 end.parse!
 
 
@@ -46,12 +46,12 @@ class Window
         sleep $sleep_time/3
     end
     # Move this window to new coordinates (x,y)
-    def move(x,y)
+    def move(x, y)
         xdotool "windowmove --sync #{@id} #{x} #{y}"
         sleep $sleep_time/3
     end
     # Resize this window to geometry (x,y)
-    def size(x,y)
+    def size(x, y)
         xdotool "windowsize --sync #{@id} #{x} #{y}"
         sleep $sleep_time/3
     end
@@ -65,7 +65,7 @@ class Window
     # Call this function to resize the window to its default size.
     # May be useful before calling "click_on" if your window manager resizes windows haphazardly.
     def size_default
-        xdotool "windowsize --sync #{@id} #{@default.join(' ')}" unless get_geometry(@id) == @default
+        xdotool "windowsize --sync #{@id} #{@default.join(" ")}" unless get_geometry(@id) == @default
         sleep $sleep_time/3
     end
 end
@@ -74,14 +74,14 @@ end
 class Kvis < Window
     def initialize(id)
         # Default window size. Resize if necessary.
-        @default = [522,614]
+        @default = [522, 614]
         # Run the parent method "initialize"
         super
     end
     # Open the Files window
     def files
         self.raise
-        click_on_perc(@id,5.7,2.5)
+        click_on_perc(@id, 5.7, 2.5)
         # Return the new window
         return Files.new(get_window_id("Array File Selector"))
     end
@@ -90,7 +90,7 @@ class Kvis < Window
         self.raise
         case element.downcase
         when "pseudo"
-            navigate_dropdown_perc(@id,19.2,2.5,0,50)
+            navigate_dropdown_perc(@id, 19.2, 2.5, 0, 50)
             return Pseudo.new(get_window_id("pseudoCmapwinpopup"))
         end
     end
@@ -99,17 +99,17 @@ class Kvis < Window
         self.raise
         case element.downcase
         when "axis"
-            navigate_dropdown_perc(@id,44,2.5,0,50)
+            navigate_dropdown_perc(@id, 44, 2.5, 0, 50)
             return Axis.new(get_window_id("dressingControlPopup"))
         when "annotation"
-            navigate_dropdown_perc(@id,44,2.5,0,145)
+            navigate_dropdown_perc(@id, 44, 2.5, 0, 145)
             return Annotation.new(get_window_id("Annotation File Selector"))
         end
     end
     # Open the View window
     def view
         self.raise
-        click_on_perc(@id,70,2.5)
+        click_on_perc(@id, 70, 2.5)
         return View.new(get_window_id("View Control for display window"))
     end
 end
@@ -117,12 +117,12 @@ end
 ## Browser window
 class Browser < Window
     def initialize(id)
-        @default = [439,588]
+        @default = [439, 588]
         super
     end
     def close
         self.raise
-        click_on(@id,30,15)
+        click_on(@id, 30, 15)
         super
     end
 end
@@ -130,21 +130,21 @@ end
 ## Axis Labels window
 class Axis < Window
     def initialize(id)
-        @default = [344,331]
+        @default = [344, 331]
         super
     end
     def close
         self.raise
-        click_on(@id,30,15)
+        click_on(@id, 30, 15)
         super
     end
     def enable
         self.raise
-        click_on_perc(@id,29.1,4.5)
+        click_on_perc(@id, 29.1, 4.5)
     end
     def paper_colours
         self.raise
-        click_on_perc(@id,58.1,42.3)
+        click_on_perc(@id, 58.1, 42.3)
     end
 end
 
@@ -152,58 +152,58 @@ end
 class Pseudo < Window
     def initialize(id)
         # Make the height bigger so we have more profiles available in reach
-        @default = [418,700]
+        @default = [418, 700]
         super
     end
     def close
         self.raise
-        click_on(@id,30,15)
+        click_on(@id, 30, 15)
         super
     end
     def reverse
         self.raise
-        click_on(@id,130,15)
+        click_on(@id, 130, 15)
     end
     def greyscale2
         self.raise
-        click_on(@id,230,331)
+        click_on(@id, 230, 331)
     end
     def glynn_rogers2
         self.raise
-        click_on(@id,230,426)
+        click_on(@id, 230, 426)
     end
     def heat
         self.raise
-        click_on(@id,230,523)
+        click_on(@id, 230, 523)
     end
 end
 
 ## View window
 class View < Window
     def initialize(id)
-        @default = [460,249]
+        @default = [460, 249]
         super
     end
     def close
         self.raise
-        click_on_perc(@id,6.5,6)
+        click_on_perc(@id, 6.5, 6)
         super
     end
     def marker
         self.raise
-        click_on_perc(@id,21.7,46.2)
+        click_on_perc(@id, 21.7, 46.2)
     end
     def movie
         self.raise
-        click_on_perc(@id,25.4,16.1)
+        click_on_perc(@id, 25.4, 16.1)
     end
     def profile(element)
         self.raise
         case element.downcase
         when "line"
-            navigate_dropdown_perc(@id,43.5,16.1,0,50)
+            navigate_dropdown_perc(@id, 43.5, 16.1, 0, 50)
         when "box_sum"
-            navigate_dropdown_perc(@id,43.5,16.1,0,75)
+            navigate_dropdown_perc(@id, 43.5, 16.1, 0, 75)
         end
         return Profile.new(get_window_id("Profile Window for display window"))
     end
@@ -212,29 +212,29 @@ end
 ## Profile window
 class Profile < Window
     def initialize(id)
-        @default = [442,436]
+        @default = [442, 436]
         super
     end
     def close
         self.raise
-        click_on(@id,30,15)
+        click_on(@id, 30, 15)
         super
     end
     def v_zoom
-        click_on(@id,100,15)
+        click_on(@id, 100, 15)
     end
     def style(element)
         self.raise
         case element.downcase
         when "hist"
-            navigate_dropdown(@id,280,40,280,90)
+            navigate_dropdown(@id, 280, 40, 280, 90)
         end
     end
     def overlay(element)
         self.raise
         case element.downcase
         when "axis"
-            navigate_dropdown(@id,100,40,100,90)
+            navigate_dropdown(@id, 100, 40, 100, 90)
             return Axis.new(get_window_id("dressingControlPopup"))
         end
     end
@@ -246,16 +246,16 @@ class Files < Window
         # The Files window is special - it will size itself according to the files in the pwd.
         # Additionally, it seems that button placement is machine dependant.
         # Resizing is done only to be consistent with the other windows.
-        @default = [400,400]
+        @default = [400, 400]
         super
     end
     def pin
         # The strategy for hitting buttons is to cycle through known sizes
         self.raise
-        self.size(800,55)
-        click_on(@id,225,15)
-        self.size(800,80)
-        click_on(@id,225,15)
+        self.size(800, 55)
+        click_on(@id, 225, 15)
+        self.size(800, 80)
+        click_on(@id, 225, 15)
     end
     # No close method exists because it's hard. Sorry.
 end
@@ -263,29 +263,29 @@ end
 ## Annotation window
 class Annotation < Window
     def initialize(id)
-        @default = [500,400]
+        @default = [500, 400]
         super
     end
     def close
         self.raise
-        click_on(@id,30,390)
+        click_on(@id, 30, 390)
         super
     end
     def pin
         self.raise
-        click_on(@id,220,390)
+        click_on(@id, 220, 390)
     end
 end
 
 ## Movie window
 class Movie < Window
     def initialize(id)
-        @default = [355,315]
+        @default = [355, 315]
         super
     end
     def close
         self.raise
-        click_on_perc(@id,6.5,6)
+        click_on_perc(@id, 6.5, 6)
         super
     end
 end
@@ -308,7 +308,7 @@ def get_window_id(search_string)
 end
 
 # Move the mouse relative to the window id to (x,y) and click
-def click_on(id,x,y)
+def click_on(id, x, y)
     # Get the position of this window id
     position = get_position(id)
     # Add the [x,y] passed in by get_position to our x and y
@@ -321,16 +321,16 @@ def click_on(id,x,y)
 end
 
 # Click on a point in a window based on percentile position
-def click_on_perc(id,x_p,y_p)
+def click_on_perc(id, x_p, y_p)
     # Get the size of the window
     size = get_geometry(id)
     # Scale the input percentage coordinates to absolute values, and click
-    click_on(id,size[0]*x_p/100,size[1]*y_p/100)
+    click_on(id, size[0]*x_p/100, size[1]*y_p/100)
 end
 
 # Select an option from a dropdown menu in a window id
 # (x1,y1) represent the position of the menu button, (x2,y2) the option to be selected
-def navigate_dropdown(id,x1,y1,x2,y2)
+def navigate_dropdown(id, x1, y1, x2, y2)
     # Get the position of this window id
     position = get_position(id)
     # Add the [x,y] passed in by position to x1, y1, x2, y2
@@ -352,11 +352,11 @@ end
 # Navigate a dropdown by it's percentile position
 # This is more tricky, as the menu itself does not scale with the window.
 # [x2, y2] are the absolute difference from [x_p, y_p]
-def navigate_dropdown_perc(id,x_p,y_p,x2,y2)
+def navigate_dropdown_perc(id, x_p, y_p, x2, y2)
     size = get_geometry(id)
     x1 = size[0]*x_p/100
     y1 = size[1]*y_p/100
-    navigate_dropdown(id,x1,y1,x1+x2,y1+y2)
+    navigate_dropdown(id, x1, y1, x1+x2, y1+y2)
 end
 
 # Return the (x,y) position of the top-left corner of an X window
