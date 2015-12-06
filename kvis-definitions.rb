@@ -94,6 +94,15 @@ class Kvis < Window
             return Pseudo.new(get_window_id("pseudoCmapwinpopup"))
         end
     end
+    # Opens up an element from the Zoom menu
+    def zoom(element)
+        self.raise
+        case element.downcase
+        when "policy"
+            navigate_dropdown_perc(@id, 32.5, 2.5, 0, 225)
+            return Zoom_policy.new(get_window_id("zoomPolicyPopup"))
+        end
+    end
     # Opens up an element from the Overlay menu
     def overlay(element)
         self.raise
@@ -175,6 +184,27 @@ class Pseudo < Window
     def heat
         self.raise
         click_on(@id, 230, 523)
+    end
+end
+
+## Zoom policy window
+class Zoom_policy < Window
+    def initialize(id)
+        @default = [316, 154]
+        super
+    end
+    def close
+        self.raise
+        click_on(@id, 30, 15)
+        super
+    end
+    def integer_x_zoom
+        self.raise
+        click_on(@id, 75, 65)
+    end
+    def integer_y_zoom
+        self.raise
+        click_on(@id, 230, 65)
     end
 end
 

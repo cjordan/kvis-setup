@@ -9,7 +9,7 @@ require "kvis-definitions.rb"
 
 
 # Record the mouse position so we can reset it when done
-original_mouse_pos = (xdotool "getmouselocation").scan(/:(\d*)/)[0..1].join(' ')
+original_mouse_pos = (xdotool "getmouselocation").scan(/:(\d*)/)[0..1].join(" ")
 
 # Get the desktop geometry so we can place windows neatly at the edges
 screen_geometry = (`xwininfo -root`).scan(/(Width|Height):\s*(\d*)/).map{|n| n[1].to_i}
@@ -21,15 +21,21 @@ kvis = Kvis.new(get_window_id("kvis.*Karma"))
 # From the main kvis window, open the Axis Labels window
 axis = kvis.overlay("axis")
 
+# Disable "Integer zooms" in x and y
+zoom_policy = kvis.zoom("policy")
+zoom_policy.integer_x_zoom
+zoom_policy.integer_y_zoom
+zoom_policy.close
+
 # Set axis labels to be enabled, along with paper colours
 axis.enable
 axis.paper_colours
 axis.close
 
-# Set the colour scale to "Glynn Rogers2", and disable the "Reverse" option
+# Set the colour scale to "Heat", and disable the "Reverse" option
 pseudo = kvis.intensity("pseudo")
 pseudo.reverse
-pseudo.glynn_rogers2
+pseudo.heat
 pseudo.close
 
 # Open the View window and enable "Show Marker in Line Profile"
