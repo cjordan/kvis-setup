@@ -9,23 +9,22 @@
 # How to include this script:
 # $LOAD_PATH.unshift File.dirname(__FILE__)
 # require "kvis-definitions.rb"
+abort("You're using Ruby version <1.9: please upgrade.") if RUBY_VERSION < "1.9"
 
 
 # Command line argument handling
 require "optparse"
 
-options = {}
 OptionParser.new do |opts|
     # opts.banner = "Usage: kvis-setup.rb [options]\nDumb set up script for karma's kvis. Simulates mouse movements and clicks."
-
     opts.on("-h","--help","Display this message.") {puts opts; exit}
 
     # sleep_time is global so you don't have to pass it annoyingly to functions
     $sleep_time = 0.05
 	opts.on("-s","--sleep_time NUM","Specify the amount of time to sleep between actions. May be useful for slow computers or networks. Default is 0.05s.") {|o| $sleep_time = o.to_f}
 
-    options[:open_kvis?] = true
-    opts.on("-n","--no-kvis","Do not open kvis with this script.") {options[:open_kvis?] = false}
+    $open_kvis = true
+    opts.on("-n","--no-kvis","Do not open kvis with this script.") {$open_kvis = false}
 
     opts.on("-d","--debug","Prints the commands being sent to xdotool.") {$debug = true}
 end.parse!
@@ -43,47 +42,65 @@ class Window
     def raise
         # Unsure of the proper tool to use here. "windowactivate" seems to work.
         xdotool "windowactivate #{@id}"
-        sleep $sleep_time/3
+        sleep $sleep_time
     end
     # Move this window to new coordinates (x,y)
     def move(x, y)
-        xdotool "windowmove --sync #{@id} #{x} #{y}"
-        sleep $sleep_time/3
+        start_time = Time.now
+        xdotool "windowmove #{@id} #{x} #{y}"
+        while [x, y] != get_position(@id)
+            abort("*** #{File.basename(__FILE__)}: Window #{@id} did not react - are you running a tiling window manager? Exiting...") if Time.now - start_time > 2
+        end
     end
     # Resize this window to geometry (x,y)
     def size(x, y)
-        xdotool "windowsize --sync #{@id} #{x} #{y}"
-        sleep $sleep_time/3
+        start_time = Time.now
+        xdotool "windowsize #{@id} #{x} #{y}"
+        while [x, y] != get_geometry(@id)
+            abort("*** #{File.basename(__FILE__)}: Window #{@id} did not react - are you running a tiling window manager? Exiting...") if Time.now - start_time > 2
+        end
     end
     # Closes the current window
-    # Use with care - the coordinates of the button must be specified per window.
+    # Use with care - the coordinates of the button must be specified per child window.
     # If this is run without "close" properly defined, the script will exit prematurely.
     def close
-        sleep $sleep_time
-        abort("*** #{File.basename(__FILE__)}: Window #{@id} did not close - your settings may need adjusting. Exiting...") if win_is_open?(@id)
+        start_time = Time.now
+        is_open = true
+        while is_open
+            abort("*** #{File.basename(__FILE__)}: Window #{@id} did not close - your settings may need adjusting. Exiting...") if Time.now - start_time > 2
+            is_open = win_is_open?(@id)
+        end
     end
     # Call this function to resize the window to its default size.
     # May be useful before calling "click_on" if your window manager resizes windows haphazardly.
     def size_default
-        xdotool "windowsize --sync #{@id} #{@default.join(" ")}" unless get_geometry(@id) == @default
-        sleep $sleep_time/3
+        start_time = 0
+        xdotool "windowsize #{@id} #{@default.join(" ")}"
+        while @default != get_geometry(@id)
+            abort("*** #{File.basename(__FILE__)}: Window #{@id} did not resize - are you running a tiling window manager? Exiting...") if Time.now - start_time > 2
+        end
+    end
+    def id
+        @id
     end
 end
 
 ## Primary kvis window
 class Kvis < Window
-    def initialize(id)
+    def initialize
+        # Open kvis if necessary
+        system("kvis &") if $open_kvis
         # Default window size. Resize if necessary.
         @default = [522, 614]
-        # Run the parent method "initialize"
-        super
+        # Run the parent method "initialize". wait_for_window_open returns the id.
+        super(wait_for_window_open(:kvis))
     end
     # Open the Files window
     def files
         self.raise
         click_on_perc(@id, 5.7, 2.5)
         # Return the new window
-        return Files.new(get_window_id("Array File Selector"))
+        return Files.new
     end
     # Opens up an element from the Intensity menu
     def intensity(element)
@@ -91,7 +108,7 @@ class Kvis < Window
         case element.downcase
         when "pseudo"
             navigate_dropdown_perc(@id, 19.2, 2.5, 0, 50)
-            return Pseudo.new(get_window_id("pseudoCmapwinpopup"))
+            return Pseudo.new
         end
     end
     # Opens up an element from the Zoom menu
@@ -100,7 +117,7 @@ class Kvis < Window
         case element.downcase
         when "policy"
             navigate_dropdown_perc(@id, 32.5, 2.5, 0, 225)
-            return Zoom_policy.new(get_window_id("zoomPolicyPopup"))
+            return Zoom_policy.new
         end
     end
     # Opens up an element from the Overlay menu
@@ -109,25 +126,27 @@ class Kvis < Window
         case element.downcase
         when "axis"
             navigate_dropdown_perc(@id, 44, 2.5, 0, 50)
-            return Axis.new(get_window_id("dressingControlPopup"))
+            return Axis.new
         when "annotation"
             navigate_dropdown_perc(@id, 44, 2.5, 0, 145)
-            return Annotation.new(get_window_id("Annotation File Selector"))
+            return Annotation.new
         end
     end
     # Open the View window
     def view
         self.raise
         click_on_perc(@id, 70, 2.5)
-        return View.new(get_window_id("View Control for display window"))
+        return View.new
     end
 end
 
 ## Browser window
 class Browser < Window
-    def initialize(id)
+    def initialize
         @default = [439, 588]
-        super
+        # The browser opens with kvis - do some manual identification here
+        id = (xdotool("search --name '#{$ids[:browser][:title]}'").split("\n") - $ids[:browser][:id]).first
+        super(id)
     end
     def close
         self.raise
@@ -138,9 +157,9 @@ end
 
 ## Axis Labels window
 class Axis < Window
-    def initialize(id)
+    def initialize
         @default = [344, 331]
-        super
+        super(wait_for_window_open(:axis))
     end
     def close
         self.raise
@@ -159,10 +178,10 @@ end
 
 ## PseudoColour window
 class Pseudo < Window
-    def initialize(id)
+    def initialize
         # Make the height bigger so we have more profiles available in reach
         @default = [418, 700]
-        super
+        super(wait_for_window_open(:pseudo))
     end
     def close
         self.raise
@@ -189,9 +208,9 @@ end
 
 ## Zoom policy window
 class Zoom_policy < Window
-    def initialize(id)
+    def initialize
         @default = [316, 154]
-        super
+        super(wait_for_window_open(:zoom_policy))
     end
     def close
         self.raise
@@ -210,9 +229,9 @@ end
 
 ## View window
 class View < Window
-    def initialize(id)
+    def initialize
         @default = [460, 249]
-        super
+        super(wait_for_window_open(:view))
     end
     def close
         self.raise
@@ -235,15 +254,15 @@ class View < Window
         when "box_sum"
             navigate_dropdown_perc(@id, 43.5, 16.1, 0, 75)
         end
-        return Profile.new(get_window_id("Profile Window for display window"))
+        return Profile.new
     end
 end
 
 ## Profile window
 class Profile < Window
-    def initialize(id)
+    def initialize
         @default = [442, 436]
-        super
+        super(wait_for_window_open(:profile))
     end
     def close
         self.raise
@@ -265,19 +284,19 @@ class Profile < Window
         case element.downcase
         when "axis"
             navigate_dropdown(@id, 100, 40, 100, 90)
-            return Axis.new(get_window_id("dressingControlPopup"))
+            return Axis.new
         end
     end
 end
 
 ## Files window
 class Files < Window
-    def initialize(id)
+    def initialize
         # The Files window is special - it will size itself according to the files in the pwd.
         # Additionally, it seems that button placement is machine dependant.
         # Resizing is done only to be consistent with the other windows.
         @default = [400, 400]
-        super
+        super(wait_for_window_open(:files))
     end
     def pin
         # The strategy for hitting buttons is to cycle through known sizes
@@ -330,13 +349,6 @@ def xdotool(command)
     `xdotool #{command}`.strip
 end
 
-# Return the window id from a X window name
-# We only return the last element from xdotool
-def get_window_id(search_string)
-    sleep $sleep_time/3
-    return (xdotool "search --sync --name '#{search_string}'").split("\n")[-1]
-end
-
 # Move the mouse relative to the window id to (x,y) and click
 def click_on(id, x, y)
     # Get the position of this window id
@@ -373,10 +385,10 @@ def navigate_dropdown(id, x1, y1, x2, y2)
     xdotool "mousemove #{x1} #{y1-30}"
     xdotool "mousemove #{x1} #{y1}"
     xdotool "mousedown 1"
-    sleep $sleep_time/2
+    sleep $sleep_time
     xdotool "mousemove #{x2} #{y2}"
     xdotool "mouseup 1"
-    sleep $sleep_time/2
+    sleep $sleep_time
 end
 
 # Navigate a dropdown by it's percentile position
@@ -418,8 +430,34 @@ def win_is_open?(id)
     (`xwininfo -id #{id}`).match(/Map State:\s*(IsViewable)/) ? true : false
 end
 
+def wait_for_window_open(window_type)
+    start_time = Time.now
+    id = $ids[window_type][:id]
+    while (id - $ids[window_type][:id]).empty?
+        output = xdotool("search --name '#{$ids[window_type][:title]}'")
+        id = output.empty? ? [] : output.split("\n")
+        abort("*** #{File.basename(__FILE__)}: #{window_type} didn't open in time. Exiting...") if Time.now - start_time > 2
+    end
+    id = (id - $ids[window_type][:id]).first
+    $ids[window_type][:id].push(id)
+    return id
+end
 
-# Open kvis
-if options[:open_kvis?]
-    system("kvis &")
+
+
+### Make an array of all window title regexes
+### Search for all of these at the start of the script
+$ids = {kvis: {title: "kvis.*Karma", id: []},
+        browser: {title: "Browser.*for display window", id: []},
+        pseudo: {title: "pseudoCmapwinpopup", id: []},
+        zoom_policy: {title: "zoomPolicyPopup", id: []},
+        profile: {title: "Profile Window for display window", id: []},
+        axis: {title: "dressingControlPopup", id: []},
+        annotation: {title: "Annotation File Selector", id: []},
+        files: {title: "Array File Selector", id: []},
+        view: {title: "View Control for display window*", id: []}
+       }
+$ids.each do |w, p|
+    ids = xdotool "search --name '#{p[:title]}'"
+    p[:id] = ids.empty? ? [] : ids.split("\n")
 end

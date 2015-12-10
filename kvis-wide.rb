@@ -16,8 +16,8 @@ screen_geometry = (`xwininfo -root`).scan(/(Width|Height):\s*(\d*)/).map{|n| n[1
 
 
 ## Window manipulation
-# Create a new "Kvis" object from a window id that matches "kvis.*Karma"
-kvis = Kvis.new(get_window_id("kvis.*Karma"))
+# Create a new "Kvis" object
+kvis = Kvis.new
 # From the main kvis window, open the Axis Labels window
 axis = kvis.overlay("axis")
 
@@ -62,23 +62,22 @@ files.pin
 
 
 ## Window formatting variables
-kvis_id = get_window_id("kvis.*Karma")
 # Window decorator height
-win_dec_height = get_win_decorator_height(kvis_id)
+win_dec_height = get_win_decorator_height(kvis.id)
 # Window manager top bar height - this assumes the main kvis window is positioned just beneath it
-top_bar_height = get_top_bar_height(kvis_id)
-
-# Main kvis window
-kvis_width = 1400
-kvis_height = 700
-kvis_x = 0
-kvis_y = top_bar_height
+top_bar_height = get_top_bar_height(kvis.id)
 
 # Files window (sitting on the left)
 files_width = 500
 files_height = screen_geometry[1] - 2*top_bar_height - win_dec_height - 4
 files_x = 0
 files_y = top_bar_height
+
+# Main kvis window
+kvis_width = 1400
+kvis_height = 700
+kvis_x = 0
+kvis_y = top_bar_height
 
 # Browser (sitting on the right)
 browser_width = 500
@@ -102,7 +101,7 @@ files.size(files_width, files_height)
 files.move(files_x, files_y)
 files.raise
 
-browser = Browser.new(get_window_id("Browser.*for display window"))
+browser = Browser.new
 browser.size(browser_width, browser_height)
 browser.move(browser_x, browser_y)
 browser.raise
