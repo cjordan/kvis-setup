@@ -17,16 +17,16 @@ require "optparse"
 
 OptionParser.new do |opts|
     # opts.banner = "Usage: kvis-setup.rb [options]\nDumb set up script for karma's kvis. Simulates mouse movements and clicks."
-    opts.on("-h","--help","Display this message.") {puts opts; exit}
+    opts.on("-h", "--help", "Display this message.") {puts opts; exit}
 
     # sleep_time is global so you don't have to pass it annoyingly to functions
-    $sleep_time = 0.05
-	opts.on("-s","--sleep_time NUM","Specify the amount of time to sleep between actions. May be useful for slow computers or networks. Default is 0.05s.") {|o| $sleep_time = o.to_f}
+    $sleep_time = 0.01
+	opts.on("-s", "--sleep_time NUM", "Specify the amount of time to sleep between actions. May be useful for slow computers or networks. Default is #{$sleep_time}s.") {|o| $sleep_time = o.to_f}
 
     $open_kvis = true
-    opts.on("-n","--no-kvis","Do not open kvis with this script.") {$open_kvis = false}
+    opts.on("-n", "--no-kvis", "Do not open kvis with this script.") {$open_kvis = false}
 
-    opts.on("-d","--debug","Prints the commands being sent to xdotool.") {$debug = true}
+    opts.on("-d", "--debug", "Prints the commands being sent to xdotool.") {$debug = true}
 end.parse!
 
 
@@ -353,10 +353,10 @@ end
 def click_on(id, x, y)
     # Get the position of this window id
     position = get_position(id)
-    # Add the [x,y] passed in by get_position to our x and y
+    # Add the [x, y] passed in by get_position to our x and y
     x += position[0]
     y += position[1]
-    # Move the mouse to (x,y), then click
+    # Move the mouse to (x, y), then click
     xdotool "mousemove #{x} #{y}"
     xdotool "click 1"
     # sleep $sleep_time
@@ -375,7 +375,7 @@ end
 def navigate_dropdown(id, x1, y1, x2, y2)
     # Get the position of this window id
     position = get_position(id)
-    # Add the [x,y] passed in by position to x1, y1, x2, y2
+    # Add the [x, y] passed in by position to x1, y1, x2, y2
     x1 += position[0]
     y1 += position[1]
     x2 += position[0]
@@ -401,7 +401,7 @@ def navigate_dropdown_perc(id, x_p, y_p, x2, y2)
     navigate_dropdown(id, x1, y1, x1+x2, y1+y2)
 end
 
-# Return the (x,y) position of the top-left corner of an X window
+# Return the (x, y) position of the top-left corner of an X window
 # Does not include the window decorator surrounding a window
 def get_position(id)
     (`xwininfo -id #{id}`).scan(/Absolute.*:\s*(\d*)/).flatten.map{|n| n.to_i}
