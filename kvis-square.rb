@@ -118,3 +118,4 @@ view.close
 xdotool "mousemove #{original_mouse_pos}"
 
 ## Done!
+puts "*** #{File.basename(__FILE__)}: Done."

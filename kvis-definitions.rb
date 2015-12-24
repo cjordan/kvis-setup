@@ -47,8 +47,12 @@ class Window
     # Move this window to new coordinates (x,y)
     def move(x, y)
         start_time = Time.now
+        # original_x_pos is what it says - this makes non-primary monitors work.
+        # However, only x-positions are considered, so monitor geometry that is non-horizontal
+        # won't work.
+        original_x_pos = get_position(@id)[0]
         xdotool "windowmove #{@id} #{x} #{y}"
-        while [x, y] != get_position(@id)
+        while [x+original_x_pos, y] != get_position(@id)
             abort("*** #{File.basename(__FILE__)}: Window #{@id} did not react - are you running a tiling window manager? Exiting...") if Time.now - start_time > 2
         end
     end
