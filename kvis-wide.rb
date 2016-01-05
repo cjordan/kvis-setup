@@ -8,13 +8,6 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 require "kvis-definitions.rb"
 
 
-# Record the mouse position so we can reset it when done
-original_mouse_pos = (xdotool "getmouselocation").scan(/:(\d*)/)[0..1].join(" ")
-
-# Get the desktop geometry so we can place windows neatly at the edges
-screen_geometry = (`xwininfo -root`).scan(/(Width|Height):\s*(\d*)/).map{|n| n[1].to_i}
-
-
 ## Window manipulation
 # Create a new "Kvis" object
 kvis = Kvis.new
@@ -62,33 +55,34 @@ files.pin
 
 
 ## Window formatting variables
+kvis_height = 700
+kvis_x = 0
+files_width = 500
+files_x = 0
+browser_width = 500
+browser_height = 600
+
 # Window decorator height
 win_dec_height = get_win_decorator_height(kvis.id)
 # Window manager top bar height - this assumes the main kvis window is positioned just beneath it
 top_bar_height = get_top_bar_height(kvis.id)
 
 # Files window (sitting on the left)
-files_width = 500
-files_height = screen_geometry[1] - 2*top_bar_height - win_dec_height - 4
-files_x = 0
+files_height = $screen_geometry[1][1] - top_bar_height - win_dec_height - 4
 files_y = top_bar_height
 
 # Main kvis window
-kvis_width = 1400
-kvis_height = 700
-kvis_x = 0
+kvis_width = $screen_geometry[1][0] - browser_width - 6
 kvis_y = top_bar_height
 
 # Browser (sitting on the right)
-browser_width = 500
-browser_height = 600
-browser_x = screen_geometry[0] - browser_width - 4
+browser_x = $screen_geometry[1][0] - browser_width - 4
 browser_y = top_bar_height
 
 # Profile window (sitting on the right)
 profile_width = browser_width
-profile_height = screen_geometry[1] - 2*top_bar_height - browser_height - 2*win_dec_height - 6
-profile_x = screen_geometry[0] - browser_width - 4
+profile_height = $screen_geometry[1][1] - top_bar_height - browser_height - 2*win_dec_height - 6
+profile_x = $screen_geometry[1][0] - browser_width - 4
 profile_y = top_bar_height + browser_height + 2*win_dec_height + 2
 
 
@@ -115,7 +109,7 @@ view.close
 
 
 ## Return the mouse to where we started
-xdotool "mousemove #{original_mouse_pos}"
+xdotool "mousemove #{$original_mouse_pos}"
 
 ## Done!
 puts "*** #{File.basename(__FILE__)}: Done."

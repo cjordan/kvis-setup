@@ -9,6 +9,8 @@
 # How to include this script:
 # $LOAD_PATH.unshift File.dirname(__FILE__)
 # require "kvis-definitions.rb"
+
+# Old versions of Ruby may not work.
 abort("You're using Ruby version <1.9: please upgrade.") if RUBY_VERSION < "1.9"
 
 
@@ -47,12 +49,13 @@ class Window
     # Move this window to new coordinates (x,y)
     def move(x, y)
         start_time = Time.now
-        # original_x_pos is what it says - this makes non-primary monitors work.
-        # However, only x-positions are considered, so monitor geometry that is non-horizontal
-        # won't work.
-        original_x_pos = get_position(@id)[0]
         xdotool "windowmove #{@id} #{x} #{y}"
-        while [x+original_x_pos, y] != get_position(@id)
+        # Inconsistencies exist between xwininfo and xdotool.
+        # "xdotool windowmove" is local to the selected monitor, not reflecting the
+        # true coordinates of the X session. Using the screen geometry determined,
+        # we can get around this.
+        while [x+$screen_geometry[0][0], y+$screen_geometry[0][1]] != get_position(@id)
+            puts "#{get_position(@id)}"
             abort("*** #{File.basename(__FILE__)}: Window #{@id} did not react - are you running a tiling window manager? Exiting...") if Time.now - start_time > 2
         end
     end
@@ -449,8 +452,8 @@ end
 
 
 
-### Make an array of all window title regexes
-### Search for all of these at the start of the script
+## Make an array of all window title regexes
+# Search for all of these at the start of the script
 $ids = {kvis: {title: "kvis.*Karma", id: []},
         browser: {title: "Browser.*for display window", id: []},
         pseudo: {title: "pseudoCmapwinpopup", id: []},
@@ -464,4 +467,29 @@ $ids = {kvis: {title: "kvis.*Karma", id: []},
 $ids.each do |w, p|
     ids = xdotool "search --name '#{p[:title]}'"
     p[:id] = ids.empty? ? [] : ids.split("\n")
+end
+
+
+# Record the mouse position so we can reset it when done.
+$original_mouse_pos = (xdotool "getmouselocation").scan(/:(\d*)/)[0..1].join(" ")
+
+# Get the desktop geometry so we can place windows neatly at the edges.
+# Not sure if xrandr exists on OSX (probably not). This will need another solution.
+# Determine which screen the mouse is on, so we can set up windows only on this screen.
+xrandr_output = `xrandr -q`
+screens = xrandr_output.scan(/(\S+) connected.* (\d+)x(\d+)(.\d+)(.\d+) /)
+$screen_geometry = [[], []]
+screens.each do |s|
+    x_min = s[3].to_i
+    x_max = s[1].to_i+s[3].to_i
+    y_min = s[4].to_i
+    y_max = s[2].to_i+s[4].to_i
+    x_size = s[1].to_i
+    y_size = s[2].to_i
+    if $original_mouse_pos.split(" ")[0].to_i < x_max and
+       $original_mouse_pos.split(" ")[0].to_i > x_min and
+       $original_mouse_pos.split(" ")[1].to_i < y_max and
+       $original_mouse_pos.split(" ")[1].to_i > y_min
+        $screen_geometry = [[x_min, y_min, x_max, y_max], [x_size, y_size]]
+    end
 end
